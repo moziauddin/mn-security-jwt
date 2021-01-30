@@ -1,0 +1,47 @@
+plugins {
+    id("groovy")
+    id("com.github.johnrengelman.shadow") version "6.1.0"
+    id("io.micronaut.application") version "1.3.2"
+}
+
+version = "0.1"
+group = "au.com.moziauddin"
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+micronaut {
+    runtime("netty")
+    testRuntime("spock2")
+    processing {
+        incremental(true)
+        annotations("au.com.moziauddin.*")
+    }
+}
+
+dependencies {
+    annotationProcessor  "io.micronaut.security:micronaut-security-annotations"
+    implementation("io.micronaut:micronaut-validation")
+    implementation("io.micronaut.groovy:micronaut-runtime-groovy")
+    implementation("javax.annotation:javax.annotation-api")
+    implementation("io.micronaut:micronaut-http-client")
+    runtimeOnly("ch.qos.logback:logback-classic")
+
+    // Micronaut security
+    implementation "io.micronaut.security:micronaut-security-jwt"
+}
+
+
+application {
+    mainClass.set("au.com.moziauddin.Application")
+}
+
+java {
+    sourceCompatibility = JavaVersion.toVersion("11")
+    targetCompatibility = JavaVersion.toVersion("11")
+}
+
+
+

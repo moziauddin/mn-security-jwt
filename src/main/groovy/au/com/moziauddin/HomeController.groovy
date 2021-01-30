@@ -21,4 +21,9 @@ class HomeController {
     String index() {
         return homeService.sayHello()
     }
+
+    @Get('/secret')
+    String secretResponse() {
+        return 'MySecretPassword'
+    }
 }

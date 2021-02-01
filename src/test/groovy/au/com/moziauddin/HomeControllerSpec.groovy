@@ -1,5 +1,7 @@
 package au.com.moziauddin
 
+import com.nimbusds.jwt.JWTParser
+import com.nimbusds.jwt.SignedJWT
 import io.micronaut.http.HttpHeaders
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
@@ -49,7 +51,6 @@ class HomeControllerSpec extends Specification {
         response.status == HttpStatus.OK
         token.accessToken
         token.username == 'admin'
-        println("Access: ${token.accessToken} \n Refresh: ${token.refreshToken}")
     }
 
     void "Make a successful request to secured endpoint"() {
@@ -58,8 +59,6 @@ class HomeControllerSpec extends Specification {
         HttpRequest request = HttpRequest.POST('/login', creds)
         HttpResponse response = client.toBlocking().exchange(request, BearerAccessRefreshToken)
         String token = response.body().accessToken
-        String refToken = response.body().refreshToken
-        println "Access: $token\n Refresh: $refToken"
         HttpRequest reqAuthorized = HttpRequest.GET('/home/secret').header(HttpHeaders.AUTHORIZATION, "Bearer ${token.toString()}")
         HttpResponse<String> res = client.toBlocking().exchange(reqAuthorized, String)
         String text = res.body()
@@ -67,19 +66,16 @@ class HomeControllerSpec extends Specification {
         then:
         res.status == HttpStatus.OK
         text == 'MySecretPassword'
+        JWTParser.parse(token) instanceof SignedJWT
     }
 
 //    void "Make a request with invalid password"() {
 //        when:
-//        try {
-//            UsernamePasswordCredentials creds = new UsernamePasswordCredentials('admin', 'secret')
-//            HttpRequest request = HttpRequest.POST('/login', creds)
-//            client.toBlocking().exchange(request, BearerAccessRefreshToken)
-//        } catch (Exception e) {
-//            println "Exception: ${e.getClass()}"
-//        }
+//        UsernamePasswordCredentials creds = new UsernamePasswordCredentials('admin', 'secret')
+//        HttpRequest request = HttpRequest.POST('/login', creds)
+//        HttpRequest<String> response = client.toBlocking().exchange(request, String)
 //
 //        then:
-//        thrown(Exception)
+//        print "$response"
 //    }
 }

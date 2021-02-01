@@ -9,3 +9,11 @@ micronaut:
           secret:
             generator:
               secret: SampleSecretExampleChangeThisLater
+---
+micronaut:
+  security:
+    token:
+      jwt:
+        generator:
+          refresh-token:
+            secret: 'pleaseChangeThisSecretForANewOne'

@@ -49,7 +49,7 @@ class HomeControllerSpec extends Specification {
         response.status == HttpStatus.OK
         token.accessToken
         token.username == 'admin'
-        println("AccessTokem: ${token.accessToken} \n Refresh Token: ${token.refreshToken}")
+        println("Access: ${token.accessToken} \n Refresh: ${token.refreshToken}")
     }
 
     void "Make a successful request to secured endpoint"() {
@@ -58,7 +58,8 @@ class HomeControllerSpec extends Specification {
         HttpRequest request = HttpRequest.POST('/login', creds)
         HttpResponse response = client.toBlocking().exchange(request, BearerAccessRefreshToken)
         String token = response.body().accessToken
-        println "Token: $token"
+        String refToken = response.body().refreshToken
+        println "Access: $token\n Refresh: $refToken"
         HttpRequest reqAuthorized = HttpRequest.GET('/home/secret').header(HttpHeaders.AUTHORIZATION, "Bearer ${token.toString()}")
         HttpResponse<String> res = client.toBlocking().exchange(reqAuthorized, String)
         String text = res.body()

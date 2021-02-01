@@ -32,7 +32,7 @@ class HomeRefreshTokenPersistence implements RefreshTokenPersistence {
     @EventListener
     void persistToken(RefreshTokenGeneratedEvent event) {
         if(event && event.getRefreshToken() && event.getUserDetails().getUsername()) {
-            println "Event: ${event.properties}"
+            println "Event: ${event.getUserDetails().getUsername()}"
             if (!getContent().contains(event.getUserDetails().getUsername())) {
                 String pl = event.getUserDetails().getUsername() + '-->' +
                         event.getRefreshToken()
@@ -52,7 +52,9 @@ class HomeRefreshTokenPersistence implements RefreshTokenPersistence {
                     emitter.onNext(new UserDetails(username, []))
                     emitter.onComplete()
                 } else {
-                    emitter.onError(new OauthErrorResponseException(IssuingAnAccessTokenErrorCode.UNAUTHORIZED_CLIENT, "Ref Token not in the list", null))
+                    emitter.onError(new OauthErrorResponseException(
+                            IssuingAnAccessTokenErrorCode.UNAUTHORIZED_CLIENT,
+                            "Ref Token not in the list", null))
                 }
             }
         }, BackpressureStrategy.ERROR)

@@ -1,16 +1,11 @@
 package au.com.moziauddin
 
-import com.fasterxml.jackson.core.JsonGenerationException
-import com.fasterxml.jackson.databind.ObjectMapper
+
 import com.nimbusds.jwt.JWTParser
 import com.nimbusds.jwt.SignedJWT
-import io.micronaut.http.HttpHeaders
-import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus
-import io.micronaut.http.MediaType
+import io.micronaut.http.*
 import io.micronaut.http.client.RxHttpClient
 import io.micronaut.http.client.annotation.Client
-import io.micronaut.http.HttpRequest
 import io.micronaut.security.authentication.UsernamePasswordCredentials
 import io.micronaut.security.token.jwt.render.BearerAccessRefreshToken
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
@@ -45,11 +40,11 @@ class HomeControllerSpec extends Specification {
     void "Check if accessToken exists in the response from /login endpoint"() {
         when:
         UsernamePasswordCredentials adminUserCreds = new UsernamePasswordCredentials("admin", "admin")
-        HttpRequest login = HttpRequest.POST('/login', adminUserCreds)
-        HttpResponse<BearerAccessRefreshToken> response =  client.toBlocking().exchange(login, BearerAccessRefreshToken)
-        BearerAccessRefreshToken token = response.body()
+        HttpRequest loginRequest = HttpRequest.POST('/login', adminUserCreds)
+        HttpResponse<BearerAccessRefreshToken> response = client.toBlocking().exchange(loginRequest, BearerAccessRefreshToken)
+        BearerAccessRefreshToken token = response?.body()
 
-        then:
+        then :
         response.status == HttpStatus.OK
         token.accessToken
         token.username == 'admin'

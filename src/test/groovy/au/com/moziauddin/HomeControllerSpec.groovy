@@ -1,14 +1,16 @@
 package au.com.moziauddin
 
+import com.fasterxml.jackson.core.JsonGenerationException
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jwt.JWTParser
 import com.nimbusds.jwt.SignedJWT
 import io.micronaut.http.HttpHeaders
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
+import io.micronaut.http.MediaType
 import io.micronaut.http.client.RxHttpClient
 import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.HttpRequest
-import io.micronaut.security.authentication.AuthenticationFailed
 import io.micronaut.security.authentication.UsernamePasswordCredentials
 import io.micronaut.security.token.jwt.render.BearerAccessRefreshToken
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
@@ -58,24 +60,26 @@ class HomeControllerSpec extends Specification {
         UsernamePasswordCredentials creds = new UsernamePasswordCredentials('admin', 'admin')
         HttpRequest request = HttpRequest.POST('/login', creds)
         HttpResponse response = client.toBlocking().exchange(request, BearerAccessRefreshToken)
-        String token = response.body().accessToken
-        HttpRequest reqAuthorized = HttpRequest.GET('/home/secret').header(HttpHeaders.AUTHORIZATION, "Bearer ${token.toString()}")
+        String accessToken = response.body().accessToken
+        String refreshToken = response.body().refreshToken
+        println "Ref Tok: $refreshToken"
+        HttpRequest reqAuthorized = HttpRequest.GET('/home/secret').header(HttpHeaders.AUTHORIZATION, "Bearer ${accessToken.toString()}")
         HttpResponse<String> res = client.toBlocking().exchange(reqAuthorized, String)
         String text = res.body()
 
         then:
         res.status == HttpStatus.OK
         text == 'MySecretPassword'
-        JWTParser.parse(token) instanceof SignedJWT
-    }
+        JWTParser.parse(accessToken) instanceof SignedJWT
 
-//    void "Make a request with invalid password"() {
-//        when:
-//        UsernamePasswordCredentials creds = new UsernamePasswordCredentials('admin', 'secret')
-//        HttpRequest request = HttpRequest.POST('/login', creds)
-//        HttpRequest<String> response = client.toBlocking().exchange(request, String)
-//
-//        then:
-//        print "$response"
-//    }
+        when: "Gen a new access token using refresh token"
+        String data = '{"grant_type":"refresh_token", "refresh_token": "' + refreshToken + '"}'
+        HttpRequest reqToOauthAccessToken
+        reqToOauthAccessToken = HttpRequest.POST('/oauth/access_token', data).contentType(MediaType.APPLICATION_JSON)
+        HttpResponse<String> refreshRes = client.toBlocking().retrieve(reqToOauthAccessToken, String)
+
+        then:
+        println "Refresh Response: $refreshRes"
+        refreshRes
+    }
 }

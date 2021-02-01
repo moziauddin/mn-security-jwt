@@ -32,8 +32,10 @@ class HomeRefreshTokenPersistence implements RefreshTokenPersistence {
     @EventListener
     void persistToken(RefreshTokenGeneratedEvent event) {
         if(event && event.getRefreshToken() && event.getUserDetails().getUsername()) {
+            println "Event: ${event.properties}"
             if (!getContent().contains(event.getUserDetails().getUsername())) {
-                String pl = event.getUserDetails().getUsername() + '-->' + event.getRefreshToken()
+                String pl = event.getUserDetails().getUsername() + '-->' +
+                        event.getRefreshToken()
                 log.info "Payload - $pl"
                 writeRefreshToken(pl)
             }
@@ -47,7 +49,7 @@ class HomeRefreshTokenPersistence implements RefreshTokenPersistence {
             for (item in allTokens) {
                 def (username,refToken) = item.split('-->')
                 if (refreshToken == refToken) {
-                    emitter.onNext(new UserDetails(username, ['ROLE_ADMIN']))
+                    emitter.onNext(new UserDetails(username, []))
                     emitter.onComplete()
                 } else {
                     emitter.onError(new OauthErrorResponseException(IssuingAnAccessTokenErrorCode.UNAUTHORIZED_CLIENT, "Ref Token not in the list", null))

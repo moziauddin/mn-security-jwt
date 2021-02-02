@@ -69,12 +69,17 @@ class HomeControllerSpec extends Specification {
 
         when: "Gen a new access token using refresh token"
         String data = '{"grant_type":"refresh_token", "refresh_token": "' + refreshToken + '"}'
-        HttpRequest reqToOauthAccessToken
-        reqToOauthAccessToken = HttpRequest.POST('/oauth/access_token', data).contentType(MediaType.APPLICATION_JSON)
-        HttpResponse<String> refreshRes = client.toBlocking().retrieve(reqToOauthAccessToken, String)
+        HttpRequest reqToOauthAccessToken = HttpRequest
+                .POST('/oauth/access_token', data)
+                .contentType(MediaType.APPLICATION_JSON)
+        println "Data: $data"
+        HttpResponse<BearerAccessRefreshToken> refreshRes =
+                client
+                .toBlocking()
+                .retrieve(reqToOauthAccessToken, BearerAccessRefreshToken) as HttpResponse<BearerAccessRefreshToken>
 
         then:
-        println "Refresh Response: $refreshRes"
+        println "Refresh Response: $refreshRes.properties"
         refreshRes
     }
 }

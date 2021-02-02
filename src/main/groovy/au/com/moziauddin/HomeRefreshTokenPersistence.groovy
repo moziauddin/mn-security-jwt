@@ -33,12 +33,13 @@ class HomeRefreshTokenPersistence implements RefreshTokenPersistence {
     void persistToken(RefreshTokenGeneratedEvent event) {
         if(event && event.getRefreshToken() && event.getUserDetails().getUsername()) {
             println "Event: ${event.getUserDetails().getUsername()}"
-            if (!getContent().contains(event.getUserDetails().getUsername())) {
-                String pl = event.getUserDetails().getUsername() + '-->' +
-                        event.getRefreshToken()
-                log.info "Payload - $pl"
-                writeRefreshToken(pl)
+            if (getContent().contains(event.getUserDetails().getUsername())) {
+                setContentToNull()
             }
+            String pl = event.getUserDetails().getUsername() + '-->' +
+                    event.getRefreshToken()
+            log.info "Payload - $pl"
+            writeRefreshToken(pl)
         }
     }
 
@@ -46,16 +47,24 @@ class HomeRefreshTokenPersistence implements RefreshTokenPersistence {
     Publisher<UserDetails> getUserDetails(String refreshToken) {
         return Flowable.create(emitter -> {
             List allTokens = readRefreshTokens()
+            String username = ''
+            String refToken = ''
             for (item in allTokens) {
-                def (username,refToken) = item.split('-->')
-                if (refreshToken == refToken) {
-                    emitter.onNext(new UserDetails(username, []))
-                    emitter.onComplete()
-                } else {
-                    emitter.onError(new OauthErrorResponseException(
-                            IssuingAnAccessTokenErrorCode.UNAUTHORIZED_CLIENT,
-                            "Ref Token not in the list", null))
+                if (item) {
+                    def (un, rt) = item.split('-->')
+                    if (rt == refreshToken) {
+                        username = un
+                        refToken = rt
+                    }
                 }
+            }
+            if (refToken) {
+                emitter.onNext(new UserDetails(username, []))
+                emitter.onComplete()
+            } else {
+                emitter.onError(new OauthErrorResponseException(
+                        IssuingAnAccessTokenErrorCode.UNAUTHORIZED_CLIENT,
+                        "Ref Token not in the list", null))
             }
         }, BackpressureStrategy.ERROR)
     }
@@ -71,5 +80,9 @@ class HomeRefreshTokenPersistence implements RefreshTokenPersistence {
 
     String getContent() {
         return f.getText('UTF-8')
+    }
+
+    String setContentToNull() {
+        f.setText('', 'UTF-8')
     }
 }

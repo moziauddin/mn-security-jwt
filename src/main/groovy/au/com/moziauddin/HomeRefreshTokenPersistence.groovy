@@ -32,21 +32,24 @@ class HomeRefreshTokenPersistence implements RefreshTokenPersistence {
     @EventListener
     void persistToken(RefreshTokenGeneratedEvent event) {
         if(event && event.getRefreshToken() && event.getUserDetails().getUsername()) {
-            println "Event: ${event.getUserDetails().getUsername()}"
-            if (getContent().contains(event.getUserDetails().getUsername())) {
-                setContentToNull()
+            List allTokens = readStoredRefreshTokens()
+            String username = event.getUserDetails().getUsername()
+            String newToken = username + '-->' + event.getRefreshToken()
+            String myTokenString = allTokens.find {e -> e.contains(username)}
+            if (myTokenString) {
+                allTokens[allTokens.indexOf(myTokenString)] = newToken
+            } else {
+                allTokens << newToken
             }
-            String pl = event.getUserDetails().getUsername() + '-->' +
-                    event.getRefreshToken()
-            log.info "Payload - $pl"
-            writeRefreshToken(pl)
+            writeRefreshToken(allTokens)
+            log.info "Added new token $newToken and saved"
         }
     }
 
     @Override
     Publisher<UserDetails> getUserDetails(String refreshToken) {
         return Flowable.create(emitter -> {
-            List allTokens = readRefreshTokens()
+            List allTokens = readStoredRefreshTokens()
             String username = ''
             String refToken = ''
             for (item in allTokens) {
@@ -69,20 +72,14 @@ class HomeRefreshTokenPersistence implements RefreshTokenPersistence {
         }, BackpressureStrategy.ERROR)
     }
 
-    void writeRefreshToken(String text) {
-        f.append(text + '\n')
+    void writeRefreshToken(List list) {
+        println "Writing List: ${list.toString()}"
+        f.setText(list.toString())
     }
 
-    List readRefreshTokens() {
-        def lines = f.readLines('UTF-8')
-        return lines
-    }
-
-    String getContent() {
-        return f.getText('UTF-8')
-    }
-
-    String setContentToNull() {
-        f.setText('', 'UTF-8')
+    List readStoredRefreshTokens() {
+        String fileContent = f.getText('UTF-8')
+        List tokens = fileContent.tokenize(',[]')
+        return tokens
     }
 }

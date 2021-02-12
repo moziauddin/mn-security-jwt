@@ -2,6 +2,10 @@ micronaut:
   application:
     name: jwtsecurity
   security:
+    intercept-url-map:
+      - pattern: /**
+        access:
+          - isAnonymous()
     authentication: bearer
     token:
       jwt:

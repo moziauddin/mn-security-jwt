@@ -1,16 +1,47 @@
-<configuration>
+<!--<configuration>-->
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <withJansi>false</withJansi>
-        <!-- encoders are assigned the type
-             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+<!--    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">-->
+<!--        <withJansi>false</withJansi>-->
+<!--        &lt;!&ndash; encoders are assigned the type-->
+<!--             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default &ndash;&gt;-->
+<!--        <encoder>-->
+<!--            <pattern>%cyan(%d{HH:mm:ss.SSS}) %gray([%thread]) %highlight(%-5level) %magenta(%logger{36}) - %msg%n-->
+<!--            </pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
+
+<!--    <root level="info">-->
+<!--        <appender-ref ref="STDOUT"/>-->
+<!--    </root>-->
+<!--</configuration>-->
+
+<configuration>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logFile.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>90</maxHistory>
+        </rollingPolicy>
         <encoder>
-            <pattern>%cyan(%d{HH:mm:ss.SSS}) %gray([%thread]) %highlight(%-5level) %magenta(%logger{36}) - %msg%n
+            <charset>utf-8</charset>
+            <pattern>%boldMagenta(%date{HH:mm:ss}) %white([%0.5thread]) %boldYellow(%-5level) %magenta(%logger{20}) - %msg%n
             </pattern>
         </encoder>
     </appender>
+<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <withJansi>true</withJansi>
+    <!-- encoders are assigned the type
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <encoder>
+        <pattern>%boldMagenta(%date{HH:mm:ss}) %white([%0.5thread]) %boldYellow(%-5level) %magenta(%logger{20}) - %msg%n
+        </pattern>
+    </encoder>
+</appender>
 
-    <root level="info">
-        <appender-ref ref="STDOUT"/>
-    </root>
+<root level="info">
+    <appender-ref ref="STDOUT"/>
+    <appender-ref ref="FILE"/>
+</root>
+<logger name="io.micronaut.http.client" level="INFO"/>
+<logger name="io.micronaut.security" level="INFO"/>
+<!--    <logger name="io.micronaut.servlet.http.ServletHttpHandler" level="TRACE"></logger>-->
 </configuration>

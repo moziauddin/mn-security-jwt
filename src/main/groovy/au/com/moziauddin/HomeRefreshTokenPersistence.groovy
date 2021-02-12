@@ -20,7 +20,7 @@ class HomeRefreshTokenPersistence implements RefreshTokenPersistence {
      * Author: Mo Ziauddin
      * Handle the refresh token workflow so the refresh token is generated
      */
-    static String filename = 'etc/refresh-tokens.txt'
+    static String filename = 'refresh-tokens.txt'
     File f = new File(filename)
 
     HomeRefreshTokenPersistence() {
